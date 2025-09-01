@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Me-API Playground</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: auto; padding: 20px; line-height: 1.6; }
+        .container { margin-top: 20px; }
+        .profile-item { margin-bottom: 10px; }
+        .project-card { border: 1px solid #ccc; padding: 15px; margin-bottom: 15px; border-radius: 8px; }
+        .project-card h3 { margin-top: 0; }
+        input, button { padding: 8px; font-size: 16px; }
+        #search-button { cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>My Profile API</h1>
+    <div id="profile-details-container" class="container">
+        <h2>Profile</h2>
+        <div id="profile-details">Loading profile...</div>
+    </div>
+
+    <hr>
+
+    <div id="projects-container" class="container">
+        <h2>Projects</h2>
+        <div style="margin-bottom: 15px;">
+            <input type="text" id="skill-search-input" placeholder="Search projects by skill (e.g., JavaScript)">
+            <button id="search-button">Search</button>
+        </div>
+        <div id="project-list"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5000';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchProfile();
+            fetchProjects();
+
+            document.getElementById('search-button').addEventListener('click', () => {
+                const skill = document.getElementById('skill-search-input').value;
+                if (skill) {
+                    fetchProjectsBySkill(skill);
+                } else {
+                    fetchProjects(); // If search box is empty, fetch all projects
+                }
+            });
+        });
+
+        async function fetchProfile() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/profile`);
+                const profile = await response.json();
+                renderProfile(profile);
+            } catch (error) {
+                console.error('Failed to fetch profile:', error);
+            }
+        }
+
+        async function fetchProjects() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/projects`);
+                const projects = await response.json();
+                renderProjects(projects);
+            } catch (error) {
+                console.error('Failed to fetch projects:', error);
+            }
+        }
+
+        async function fetchProjectsBySkill(skill) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/projects?skill=${encodeURIComponent(skill)}`);
+                const projects = await response.json();
+                renderProjects(projects);
+            } catch (error) {
+                console.error(`Failed to fetch projects with skill "${skill}":`, error);
+            }
+        }
+
+        function renderProfile(profile) {
+            const profileDetails = document.getElementById('profile-details');
+            profileDetails.innerHTML = `
+                <div class="profile-item"><strong>Name:</strong> ${profile.name}</div>
+                <div class="profile-item"><strong>Email:</strong> ${profile.email}</div>
+                <div class="profile-item"><strong>Education:</strong> ${profile.education}</div>
+                <div class="profile-item"><strong>Work:</strong> ${profile.work}</div>
+                <div class="profile-item"><strong>Skills:</strong> ${profile.skills.join(', ')}</div>
+                <div class="profile-item"><strong>Links:</strong>
+                    <ul>
+                        ${Object.entries(profile.links).map(([key, value]) => `<li><a href="${value}" target="_blank">${key}</a></li>`).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+
+        function renderProjects(projects) {
+            const projectList = document.getElementById('project-list');
+            projectList.innerHTML = '';
+            if (projects.length === 0) {
+                projectList.innerHTML = '<p>No projects found.</p>';
+                return;
+            }
+            projects.forEach(project => {
+                const projectCard = document.createElement('div');
+                projectCard.className = 'project-card';
+                projectCard.innerHTML = `
+                    <h3>${project.title}</h3>
+                    <p>${project.description}</p>
+                    <p><strong>Links:</strong> ${project.links.map(link => `<a href="${link}" target="_blank">${link}</a>`).join(', ')}</p>
+                `;
+                projectList.appendChild(projectCard);
+            });
+        }
+    </script>
+</body>
+</html>
