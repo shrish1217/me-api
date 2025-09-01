@@ -10,8 +10,11 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// Corrected: Serve static files from the 'frontend' directory
+app.use(express.static(path.join(__dirname, '../frontend')));
+
 // Database setup
-const dbPath = path.resolve(__dirname, 'meapi.db');
+const dbPath = path.resolve(__dirname, '..', 'meapi.db');
 const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         console.error("❌ Database connection failed:", err.message);
@@ -104,8 +107,7 @@ function createTablesAndSeedData() {
         projectSkillsStmt.finalize();
 
         const linksStmt = db.prepare("INSERT INTO links (github, linkedin, portfolio) VALUES (?, ?, ?)");
-        linksStmt.run('https://github.com/shrish1217'
-, 'https://linkedin.com/in/shrish-vats-855678313', 'https://your-portfolio.com');
+        linksStmt.run('https://github.com/shrish1217', 'https://linkedin.com/in/shrish-vats-855678313', 'https://your-portfolio.com');
         linksStmt.finalize();
 
         console.log("Database seeded with sample data.");
@@ -158,7 +160,6 @@ app.put("/profile", (req, res) => {
     });
 });
 
-// Projects endpoints
 app.get("/projects", (req, res) => {
     const { skill } = req.query;
     let sql = "SELECT p.*, s.name as skill_name FROM projects p JOIN project_skills ps ON p.id = ps.project_id JOIN skills s ON ps.skill_id = s.id";
@@ -183,7 +184,6 @@ app.get("/projects", (req, res) => {
     });
 });
 
-// Other endpoints (optional but good practice)
 app.post("/projects", (req, res) => {
     const { title, description, links, skills } = req.body;
     const linksJson = JSON.stringify(links);
@@ -241,9 +241,8 @@ app.get("/skills/top", (req, res) => {
     });
 });
 
-
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/index.html');
+app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
 
 process.on('SIGINT', () => {
@@ -254,8 +253,4 @@ process.on('SIGINT', () => {
         console.log('Database connection closed.');
         process.exit(0);
     });
-});
-
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
