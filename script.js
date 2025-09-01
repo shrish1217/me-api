@@ -6,8 +6,16 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
 app.use(express.json());
+
+// Set up CORS with a specific origin for your frontend
+// This is critical for security and must be configured correctly
+// Replace the URL with your live Vercel frontend URL
+const corsOptions = {
+    origin: 'https://me-api-git-main-shrish1217s-projects.vercel.app'
+};
+app.use(cors(corsOptions));
+
 
 const dbPath = path.resolve(__dirname, 'meapi.db');
 const db = new sqlite3.Database(dbPath, (err) => {
@@ -224,7 +232,7 @@ app.get("/skills/top", (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.listen(PORT, () => {
